@@ -48,14 +48,18 @@ void use() {
   currIsrAt = esp_timer_get_time();
   int errpps = (currIsrAt - lastIsrAt) % 1000000;
   int errcam = (currIsrAt - lastIntpAt) % 1000000;
-//
+  
+  if(round((currIsrAt - lastIsrAt) / 1000000.)==1&&lastIsrAt!=0){
+    cnt=(currIsrAt - lastIsrAt)/60;
+    Serial.println(cnt);
+  }
 
   if (isinit && errpps > 1000 && errpps > 1000000 - 1000) { //filter error pps
     return;
   }
   else {
     if (isinit == 0) {
-      if (ind == 1000) {
+      if (ind == 200) {//init after 200s
         isinit = 1;
       }
       if (ind == 0) {
@@ -87,10 +91,10 @@ void use() {
   }
   lasterrcam=errcam;
   portEXIT_CRITICAL(&timerMux);
-  Serial.println((uint32_t)lastIsrAt);
-  Serial.println(errpps);
-  Serial.println(errcam);
-  Serial.println("************************");
+//  Serial.println((uint32_t)lastIsrAt);
+//  Serial.println(errpps);
+//  Serial.println(errcam);
+//  Serial.println("************************");
 }
 
 
