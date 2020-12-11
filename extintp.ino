@@ -48,10 +48,11 @@ void use() {
   currIsrAt = esp_timer_get_time();
   int errpps = (currIsrAt - lastIsrAt) % 1000000;
   int errcam = (currIsrAt - lastIntpAt) % 1000000;
-  
-  if(round((currIsrAt - lastIsrAt) / 1000000.)==1&&lastIsrAt!=0){
-    cnt=(currIsrAt - lastIsrAt)/60;
-    Serial.println(cnt);
+  if (isinit == 0) {
+    if (round((currIsrAt - lastIsrAt) / 1000000.) == 1 && lastIsrAt != 0) {
+      cnt = (currIsrAt - lastIsrAt) / 60;
+      //      Serial.println(cnt);
+    }
   }
 
   if (isinit && errpps > 1000 && errpps > 1000000 - 1000) { //filter error pps
@@ -59,7 +60,7 @@ void use() {
   }
   else {
     if (isinit == 0) {
-      if (ind == 200) {//init after 200s
+      if (ind == 30) {//init after 200s
         isinit = 1;
       }
       if (ind == 0) {
@@ -70,31 +71,34 @@ void use() {
   portENTER_CRITICAL_ISR(&timerMux);
   lastIsrAt = currIsrAt;
 
-  ind++;
-  if (ind == 1000) {
-    ind = 0;
-  }
 
-  if (range < 1000) {
-    range++;
-  }
-  Serial.println(cnt-abs(errcam - cnt )  );
-  if (cnt-abs(lasterrcam - cnt )  < 100) {
+  Serial.println(cnt - abs(errcam - cnt )  );
+  if ( cnt - abs(errcam - cnt )  < 100) {
     state = !state;
   }
-  if (errcam >cnt) { //
+  //   if ( cnt - abs(errcam - cnt )  < 30) {
+  //    Serial.println(errcam);
+  if (errcam > cnt ) { //
     lut[ind] = 0;
 //    Serial.println("short");
   } else {
     lut[ind] = 1;
 //    Serial.println("long");
   }
-  lasterrcam=errcam;
+  ind++;
+  if (ind == 1000) {
+    ind = 0;
+  }
+  if (range < 1000 - 1) {
+    range++;
+  }
+  //  }
+  lasterrcam = errcam;
   portEXIT_CRITICAL(&timerMux);
-//  Serial.println((uint32_t)lastIsrAt);
-//  Serial.println(errpps);
-//  Serial.println(errcam);
-//  Serial.println("************************");
+  //  Serial.println((uint32_t)lastIsrAt);
+  //  Serial.println(errpps);
+  //  Serial.println(errcam);
+  //  Serial.println("************************");
 }
 
 
@@ -103,14 +107,14 @@ void blink() {
 
   if (digitalRead(SIG_PIN) > 0) {
     lastIntpAt = esp_timer_get_time();
-    timerAlarmWrite(timer, cnt + lut[ind30], true);
-    ind30++;
-    if (ind30 > range) {
-      if (range < 200) {
-        ind30 = 0;
-      } else {
-        ind30 = 100;//discard init lut
-      }
+    timerAlarmWrite(timer, cnt + lut[ind30/30], true);
+    ind30 +=1;
+    if (ind30/30 > range) {
+      //      if (range < 200) {
+      ind30 = 0;
+      //      } else {
+      //        ind30 = (ind-105)%1000;//discard init lut
+      //      }
     }
   }
 
