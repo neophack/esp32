@@ -92,6 +92,7 @@ void use() {
   if (range < 1000 - 1) {
     range++;
   }
+  ind30=(ind-1)*30;
   //  }
   lasterrcam = errcam;
   portEXIT_CRITICAL(&timerMux);
