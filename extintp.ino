@@ -44,16 +44,25 @@ void loop() {
   digitalWrite(led, state);
 }
 void use() {
-
+ 
   currIsrAt = esp_timer_get_time();
   int errpps = (currIsrAt - lastIsrAt) % 1000000;
   int errcam = (currIsrAt - lastIntpAt) % 1000000;
   if (isinit == 0) {
+    
     if (round((currIsrAt - lastIsrAt) / 1000000.) == 1 && lastIsrAt != 0) {
-      cnt = (currIsrAt - lastIsrAt) / 60;
+      long tmpcnt = (currIsrAt - lastIsrAt) / 60;
+      if(tmpcnt>16000&&tmpcnt<17000){
+        cnt=tmpcnt;
+      }
       //      Serial.println(cnt);
     }
   }
+   if(digitalRead(button)==0){
+    currIsrAt = lastIsrAt;
+    return;
+   }
+  //Serial.println(digitalRead(button));
 
   if (isinit && errpps > 1000 && errpps > 1000000 - 1000) { //filter error pps
     return;
@@ -72,7 +81,7 @@ void use() {
   lastIsrAt = currIsrAt;
 
 
-  Serial.println(cnt - abs(errcam - cnt )  );
+//  Serial.println(cnt - abs(errcam - cnt )  );
   if ( cnt - abs(errcam - cnt )  < 100) {
     state = !state;
   }
@@ -96,7 +105,8 @@ void use() {
   //  }
   lasterrcam = errcam;
   portEXIT_CRITICAL(&timerMux);
-  //  Serial.println((uint32_t)lastIsrAt);
+//    Serial.println((uint32_t)lastIsrAt<<32);
+//    Serial.println((uint32_t)lastIsrAt&0xffffffff);
   //  Serial.println(errpps);
   //  Serial.println(errcam);
   //  Serial.println("************************");
@@ -108,6 +118,7 @@ void blink() {
 
   if (digitalRead(SIG_PIN) > 0) {
     lastIntpAt = esp_timer_get_time();
+//    Serial.println(cnt);
     timerAlarmWrite(timer, cnt + lut[ind30/30], true);
     ind30 +=1;
     if (ind30/30 > range) {
@@ -117,6 +128,10 @@ void blink() {
       //        ind30 = (ind-105)%1000;//discard init lut
       //      }
     }
+
+    Serial.print((uint32_t)(lastIntpAt-lastIsrAt));
+    Serial.print(";");
+
   }
 
 
